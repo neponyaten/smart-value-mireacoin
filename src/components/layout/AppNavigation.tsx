@@ -18,7 +18,7 @@ export function AppNavigation() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-5xl px-3 pb-3">
-      <div className="rounded-3xl border border-cyan-200/20 bg-slate-950/80 px-2 py-2 backdrop-blur-xl shadow-[0_0_35px_rgba(56,189,248,0.12)]">
+      <div className="premium-card rounded-3xl px-2 py-2 backdrop-blur-xl">
         <ul className="grid grid-cols-5 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -31,8 +31,8 @@ export function AppNavigation() {
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[11px] text-slate-300 transition",
                     active
-                      ? "border border-cyan-300/30 bg-cyan-400/10 text-cyan-100"
-                      : "border border-transparent hover:border-cyan-300/20 hover:bg-cyan-400/5"
+                      ? "border border-cyan-300/35 bg-cyan-400/12 text-cyan-100 shadow-[0_0_18px_rgba(34,211,238,0.2)]"
+                      : "border border-transparent hover:border-cyan-300/20 hover:bg-cyan-400/6"
                   )}
                 >
                   <Icon className="size-4" />

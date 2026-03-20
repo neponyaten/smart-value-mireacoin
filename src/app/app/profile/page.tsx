@@ -44,7 +44,7 @@ export default function ProfilePage() {
       <div className="mx-auto w-full max-w-2xl space-y-4">
         <AppTopBar />
 
-        <div className="rounded-3xl border border-cyan-200/20 bg-slate-900/50 backdrop-blur-md overflow-hidden">
+        <div className="premium-card rounded-3xl overflow-hidden">
           <div className="h-20 bg-gradient-to-r from-cyan-400/20 to-blue-400/15" />
 
           <div className="px-6 pb-6">
@@ -59,19 +59,19 @@ export default function ProfilePage() {
             </div>
 
             <div className="space-y-3">
-              <div className="flex justify-between items-center px-3 py-2 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <div className="premium-card flex justify-between items-center px-3 py-2 rounded-lg">
                 <span className="text-xs uppercase tracking-widest text-slate-400">Role</span>
                 <span className="text-sm font-semibold text-cyan-100">
                   {user.role === "STUDENT" ? "Студент" : "Староста"}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center px-3 py-2 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <div className="premium-card flex justify-between items-center px-3 py-2 rounded-lg">
                 <span className="text-xs uppercase tracking-widest text-slate-400">Student ID</span>
                 <span className="text-sm font-mono text-cyan-100">{user.studentId}</span>
               </div>
 
-              <div className="flex justify-between items-center px-3 py-2 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <div className="premium-card flex justify-between items-center px-3 py-2 rounded-lg">
                 <span className="text-xs uppercase tracking-widest text-slate-400">Attendance</span>
                 <span className="text-sm font-semibold text-emerald-400">{user.attendanceStatus}</span>
               </div>
@@ -83,11 +83,11 @@ export default function ProfilePage() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-cyan-200/20 bg-slate-900/40 p-3">
+              <div className="premium-card rounded-xl p-3">
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Активная монета</p>
                 <p className="mt-1 text-sm text-slate-100">{activeCoin?.name ?? "Не выбрана"}</p>
               </div>
-              <div className="rounded-xl border border-cyan-200/20 bg-slate-900/40 p-3">
+              <div className="premium-card rounded-xl p-3">
                 <p className="text-xs text-slate-400 uppercase tracking-wider">Активный VFX</p>
                 <p className="mt-1 text-sm text-slate-100">{activeVfx?.name ?? "Не выбран"}</p>
               </div>
@@ -97,7 +97,7 @@ export default function ProfilePage() {
               <button
                 onClick={toggleHideInventory}
                 disabled={isBusy}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-cyan-200/30 bg-cyan-300/10 text-sm font-semibold text-cyan-100 hover:border-cyan-200/60 disabled:opacity-50 transition"
+                className="premium-card w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-cyan-100 hover:border-cyan-200/60 disabled:opacity-50 transition"
               >
                 {user.hideInventory ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
                 {user.hideInventory ? "Показать инвентарь" : "Скрыть инвентарь"}
@@ -105,7 +105,7 @@ export default function ProfilePage() {
 
               <button
                 onClick={copyReferral}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-blue-200/30 bg-blue-300/10 text-sm font-semibold text-blue-100 hover:border-blue-200/60 transition"
+                className="premium-card w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold text-blue-100 hover:border-blue-200/60 transition"
               >
                 <Copy className="size-4" />
                 {copied ? "Ссылка скопирована" : `Реферал: ${user.referralCode}`}
@@ -120,7 +120,7 @@ export default function ProfilePage() {
         </div>
 
         {user.role === "LEADER" && (
-          <div className="rounded-2xl border border-amber-200/30 bg-amber-400/10 p-4">
+          <div className="premium-card rounded-2xl border-amber-200/30 bg-amber-400/10 p-4">
             <p className="text-xs uppercase tracking-widest text-amber-300 mb-2">Блок управления группой</p>
             <div className="grid gap-2 sm:grid-cols-2">
               <button className="rounded-xl border border-amber-200/30 bg-amber-200/10 px-3 py-2 text-sm text-amber-100 hover:bg-amber-200/15 transition">

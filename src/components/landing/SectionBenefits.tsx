@@ -1,43 +1,32 @@
-import Link from "next/link";
+import { HoverCard, SectionReveal, StaggerContainer } from "@/components/landing/motion";
 
 export default function SectionBenefits() {
   return (
-    <section id="benefits" className="px-4 mt-24">
-      <div className="mx-auto w-full max-w-6xl">
-        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">
-          ПРЕИМУЩЕСТВА
-        </h2>
+    <section id="about" className="px-4 mt-24">
+      <SectionReveal>
+        <div className="mx-auto w-full max-w-6xl">
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">Почему это полезно</h2>
 
-        <div className="mt-10 grid md:grid-cols-3 gap-8 text-center">
-          <div className="glass rounded-[28px] border border-white/10 p-8">
-            <div className="text-lg font-semibold text-white">
-              SEAMLESS MINING
-            </div>
-            <div className="mt-3 text-gray-300 text-sm leading-relaxed">
-              Вам не нужно нажимать кнопки или смотреть рекламу. Всё
-              начисляется автоматически.
-            </div>
-          </div>
+          <StaggerContainer>
+            <div className="mt-10 grid md:grid-cols-3 gap-4">
+              <HoverCard className="premium-card rounded-3xl p-7 text-center">
+                <div className="text-lg font-semibold text-white">Автоматически</div>
+                <div className="mt-3 text-gray-300 text-sm leading-relaxed">Начисления происходят без ручных действий</div>
+              </HoverCard>
 
-          <div className="glass rounded-[28px] border border-white/10 p-8">
-            <div className="text-lg font-semibold text-white">
-              PROOF-OF-VALUE
-            </div>
-            <div className="mt-3 text-gray-300 text-sm leading-relaxed">
-              Превращаем академические успехи в ликвидный цифровой актив.
-            </div>
-          </div>
+              <HoverCard className="premium-card rounded-3xl p-7 text-center">
+                <div className="text-lg font-semibold text-white">Без лишних действий</div>
+                <div className="mt-3 text-gray-300 text-sm leading-relaxed">Пользовательский путь короткий и понятный</div>
+              </HoverCard>
 
-          <div className="glass rounded-[28px] border border-white/10 p-8">
-            <div className="text-lg font-semibold text-white">
-              GAME EDUCATION
+              <HoverCard className="premium-card rounded-3xl p-7 text-center">
+                <div className="text-lg font-semibold text-white">Цифровая ценность</div>
+                <div className="mt-3 text-gray-300 text-sm leading-relaxed">Учебная активность превращается в MireaCoin</div>
+              </HoverCard>
             </div>
-            <div className="mt-3 text-gray-300 text-sm leading-relaxed">
-              Превращает учебный процесс в увлекательную цифровую игру.
-            </div>
-          </div>
+          </StaggerContainer>
         </div>
-      </div>
+      </SectionReveal>
     </section>
   );
 }

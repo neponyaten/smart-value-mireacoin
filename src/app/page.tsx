@@ -1,12 +1,12 @@
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Hero from "@/components/landing/Hero";
-import SectionAbout from "@/components/landing/SectionAbout";
-import SectionTeam from "@/components/landing/SectionTeam";
 import SectionHowItWorks from "@/components/landing/SectionHowItWorks";
 import SectionBenefits from "@/components/landing/SectionBenefits";
+import SectionTeam from "@/components/landing/SectionTeam";
 import LandingFooter from "@/components/landing/LandingFooter";
 import SectionCTA from "@/components/landing/SectionCTA";
 import BackgroundGlow from "@/components/landing/BackgroundGlow";
+import FeedbackFloatingButton from "@/components/landing/FeedbackFloatingButton";
 
 export default function Home() {
   return (
@@ -22,21 +22,14 @@ export default function Home() {
 
       <Hero />
 
-      {/* 1 */}
-      <SectionAbout />
-
-      {/* 2 */}
       <SectionHowItWorks />
-
-      {/* 3 */}
       <SectionBenefits />
-
-      {/* 4 */}
       <SectionTeam />
 
       <SectionCTA />
 
       <LandingFooter />
+      <FeedbackFloatingButton />
     </main>
   );
 }

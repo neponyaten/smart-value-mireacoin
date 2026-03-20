@@ -7,22 +7,22 @@ export default function SectionAbout() {
         <Reveal>
           <div className="glass rounded-[34px] border border-white/10 p-8">
             <h2 className="text-4xl font-extrabold tracking-tight text-glow">
-              О ПРОЕКТЕ
+              Почему это работает
             </h2>
 
             <p className="mt-5 text-gray-200/90 leading-relaxed">
-              Проект создан, чтобы стимулировать активность и посещаемость,
-              вознаграждая студентов за их достижения и участие.
+              MireaCoin строится как продукт: прозрачная логика начислений,
+              предсказуемый результат и минимум ручных действий.
             </p>
 
             <p className="mt-4 text-gray-200/90 leading-relaxed">
-              Каждый ваш вход в систему, каждый успешно сданный проект, каждое
-              посещенное мероприятие конвертируется в уникальные койны.
+              Система связывает учебные данные и активность с цифровыми
+              поощрениями. Это делает процесс понятным и воспроизводимым.
             </p>
 
             <p className="mt-4 text-gray-200/90 leading-relaxed">
-              <span className="text-neon font-semibold">SMART EXCHANGE</span> — конвертация
-              вашего времени в реальные активы.
+              <span className="text-neon font-semibold">SMART EXCHANGE</span> —
+              конвертация вашей вовлеченности в ценный цифровой актив.
             </p>
           </div>
         </Reveal>
@@ -30,19 +30,20 @@ export default function SectionAbout() {
         <Reveal delay={0.06}>
           <div className="glass rounded-[34px] border border-white/10 p-8">
             <h2 className="text-3xl font-extrabold tracking-tight text-glow">
-              ЗАЧЕМ ЭТО СТУДЕНТУ
+              Как мы считаем
             </h2>
 
-            <p className="mt-5 text-gray-200/90 leading-relaxed">
-              <span className="text-neon font-semibold">SMART VALUE</span>{" "}
-              превращает твою учебу в увлекательную игру. Твоя посещаемость и
-              активность теперь имеют цифровой вес.
-            </p>
-
-            <p className="mt-4 text-gray-200/90 leading-relaxed">
-              Получай редкие артефакты, создавай уникальный облик своего профиля и
-              докажи, что твоя группа — самая мощная в РТУ МИРЭА.
-            </p>
+            <ul className="mt-5 space-y-3 text-gray-200/90">
+              <li className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                Данные берутся из системы МИРЭА
+              </li>
+              <li className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                Начисления автоматические
+              </li>
+              <li className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                Ничего не нужно делать вручную
+              </li>
+            </ul>
           </div>
         </Reveal>
       </div>

@@ -1,3 +1,17 @@
+export type User = {
+  id: number;
+  fullName: string;
+  group: string;
+  role: "Студент" | "Староста";
+  coins: number;
+  activeCoinId: string;
+  activeVfxId: string;
+  hideInventory: boolean;
+  referralCode: string;
+  lastSyncedAt: number;
+  rewardedEventIds: string[];
+};
+
 export const studentUserMock: User = {
   id: 1,
   fullName: "Иван Иванов",

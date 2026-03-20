@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
         <CoinSelector />
 
-        <div className="bg-gradient-to-r from-cyan-400/15 to-blue-400/10 border border-cyan-200/30 rounded-2xl p-4 text-center">
+        <div className="premium-card rounded-2xl p-4 text-center">
           <p className="text-xs uppercase tracking-widest text-cyan-200 mb-1">Баланс</p>
           <div className="text-3xl font-bold text-cyan-100">{formatCoins(user?.balance ?? 0)}</div>
           <p className="text-xs text-slate-400 mt-2">MireaCoin в активе</p>

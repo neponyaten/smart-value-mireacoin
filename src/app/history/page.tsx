@@ -30,7 +30,7 @@ export default function HistoryPage() {
                   </div>
                 </div>
                 <div className="text-sm font-semibold text-neon">
-                  {it.delta > 0 ? `+${it.delta}` : it.delta}
+                  {it.amount > 0 ? `+${it.amount}` : it.amount}
                 </div>
               </div>
             ))}

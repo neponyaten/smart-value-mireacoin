@@ -47,7 +47,7 @@ export default function InventoryPage() {
             {ownedCoins.map((coin) => (
               <div
                 key={coin.id}
-                className="rounded-2xl border border-cyan-200/20 bg-slate-900/40 overflow-hidden hover:border-cyan-200/60 transition"
+                className="premium-card rounded-2xl overflow-hidden hover:border-cyan-200/60 transition"
               >
                 <div className="relative w-full h-28 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                   <Image src={coin.image} alt={coin.name} width={70} height={70} className="" />
@@ -82,7 +82,7 @@ export default function InventoryPage() {
             {ownedVfx.map((v) => (
               <div
                 key={v.id}
-                className="rounded-2xl border border-cyan-200/20 bg-slate-900/40 overflow-hidden hover:border-cyan-200/60 transition"
+                className="premium-card rounded-2xl overflow-hidden hover:border-cyan-200/60 transition"
               >
                 <div className="relative w-full h-28 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-3xl">
                   ✨
@@ -90,7 +90,7 @@ export default function InventoryPage() {
 
                 <div className="p-3">
                   <p className="text-xs font-semibold text-slate-100 truncate">{v.name}</p>
-                  <p className="text-xs text-slate-500 mb-2">{v.tier}</p>
+                  <p className="text-xs text-slate-500 mb-2">{v.rarity}</p>
 
                   {user.activeVfxId === v.id ? (
                     <div className="w-full py-1.5 rounded text-xs font-semibold text-center bg-emerald-300/15 border border-emerald-300/30 text-emerald-300">
@@ -118,7 +118,7 @@ export default function InventoryPage() {
               <p className="text-slate-500 text-sm">История пуста</p>
             ) : (
               ledger.slice(0, 10).map((item) => (
-                <div key={item.id} className="px-3 py-2 rounded-lg bg-slate-800/30 border border-slate-700/50 flex justify-between items-start">
+                <div key={item.id} className="premium-card px-3 py-2 rounded-lg flex justify-between items-start">
                   <div>
                     <p className="text-xs font-semibold text-slate-200">{item.title}</p>
                     <p className="text-xs text-slate-500">

@@ -1,39 +1,29 @@
+import { HoverCard, SectionReveal, StaggerContainer } from "@/components/landing/motion";
+
 export default function SectionTeam() {
   return (
-    <section className="px-4 mt-16 md:mt-24">
-      <div className="mx-auto w-full max-w-6xl">
-        <h2 className="text-center text-5xl font-extrabold tracking-tight">
-          MireaCoin <span className="text-gray-200/80 font-semibold">TEAM</span>
-        </h2>
+    <section id="team" className="px-4 mt-16 md:mt-20">
+      <SectionReveal>
+        <div className="mx-auto w-full max-w-6xl">
+          <h2 className="text-center text-2xl md:text-3xl font-extrabold tracking-tight">Команда</h2>
 
-        <div className="mt-10 grid md:grid-cols-2 gap-8">
-          <div className="glass rounded-[34px] border border-white/10 p-7">
-            <div className="rounded-2xl bg-black/25 border border-neon/30 p-3">
-              <div className="h-64 rounded-xl bg-black/30 border border-white/10 flex items-center justify-center">
-                <div className="text-gray-400 text-sm">Фото CEO #1 (placeholder)</div>
-              </div>
-            </div>
+          <StaggerContainer>
+            <div className="mt-6 grid md:grid-cols-2 gap-4">
+              <HoverCard className="premium-card rounded-2xl px-5 py-4 text-center">
+                <div className="mx-auto mb-3 h-10 w-10 rounded-full border border-cyan-200/20 bg-[radial-gradient(circle_at_30%_25%,rgba(125,242,255,0.22),rgba(255,255,255,0.02))]" />
+                <div className="text-white font-semibold">Kirill Chekunov</div>
+                <div className="text-gray-400 text-xs mt-1">Product / Co-founder</div>
+              </HoverCard>
 
-            <div className="mt-4 text-center">
-              <div className="text-white font-semibold">KIRILL CHEKUNOV</div>
-              <div className="text-gray-400 text-sm">CEO</div>
+              <HoverCard className="premium-card rounded-2xl px-5 py-4 text-center">
+                <div className="mx-auto mb-3 h-10 w-10 rounded-full border border-cyan-200/20 bg-[radial-gradient(circle_at_30%_25%,rgba(125,242,255,0.22),rgba(255,255,255,0.02))]" />
+                <div className="text-white font-semibold">Denis Kosourov</div>
+                <div className="text-gray-400 text-xs mt-1">Engineering / Co-founder</div>
+              </HoverCard>
             </div>
-          </div>
-
-          <div className="glass rounded-[34px] border border-white/10 p-7">
-            <div className="rounded-2xl bg-black/25 border border-neon/30 p-3">
-              <div className="h-64 rounded-xl bg-black/30 border border-white/10 flex items-center justify-center">
-                <div className="text-gray-400 text-sm">Фото CEO #2 (placeholder)</div>
-              </div>
-            </div>
-
-            <div className="mt-4 text-center">
-              <div className="text-white font-semibold">DENIS KOSOUROV</div>
-              <div className="text-gray-400 text-sm">CEO</div>
-            </div>
-          </div>
+          </StaggerContainer>
         </div>
-      </div>
+      </SectionReveal>
     </section>
   );
 }

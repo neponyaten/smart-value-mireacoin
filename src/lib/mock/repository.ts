@@ -116,9 +116,14 @@ export const mockRepository = {
       hideInventory: false,
       referralCode: `MIREA-${payload.studentId}`,
       ownedCoinIds: ["coin-common"],
-      ownedVfxIds: ["vfx-none"],
+      ownedVfxIds: ["vfx-blue-energy"],
       activeCoinId: "coin-common",
-      activeVfxId: "vfx-none",
+      activeVfxId: "vfx-blue-energy",
+      activeVfxBySlot: {
+        NICKNAME: "vfx-blue-energy",
+        COIN: "vfx-blue-energy",
+        LEADERBOARD: "vfx-blue-energy",
+      },
       providerMode: payload.providerMode,
       password: payload.password,
     };

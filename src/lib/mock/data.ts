@@ -232,6 +232,8 @@ export function defaultLeaderboard(users: AppUser[]): {
       group: user.group,
       balance: user.balance,
       activeCoinId: user.activeCoinId,
+      nicknameVfxId: user.activeVfxBySlot.NICKNAME,
+      leaderboardVfxId: user.activeVfxBySlot.LEADERBOARD,
     }));
 
   const groupMap = users.reduce<Record<string, number>>((acc, user) => {

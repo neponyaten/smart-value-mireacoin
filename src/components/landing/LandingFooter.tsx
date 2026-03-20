@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { FaTelegramPlane } from "react-icons/fa";
 
 export default function LandingFooter() {
@@ -16,21 +15,18 @@ export default function LandingFooter() {
 
         {/* Telegram */}
         <a
-          href="https://t.me/mireacoin"
+          href="https://t.me/MireaCoin"
           target="_blank"
+          rel="noreferrer"
           className="flex items-center gap-2 text-gray-300 hover:text-neon transition"
         >
           <FaTelegramPlane size={18} />
           <span className="text-sm">t.me/mireacoin</span>
         </a>
 
-        {/* Кнопка */}
-        <Link
-          href="/auth"
-          className="px-10 py-3 rounded-full bg-neon text-black font-semibold shadow-neon hover:scale-105 active:scale-95 transition duration-200"
-        >
-          Авторизоваться
-        </Link>
+        <span className="inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-3 py-1 text-[11px] uppercase tracking-[0.14em] text-cyan-100/90">
+          Beta
+        </span>
       </div>
     </footer>
   );
