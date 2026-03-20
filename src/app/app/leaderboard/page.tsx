@@ -1,0 +1,101 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { AppTopBar } from "@/components/layout/AppTopBar";
+import { formatCoins, initials } from "@/lib/utils/format";
+import { staticCatalog, useAppStore } from "@/store/useAppStore";
+
+type Tab = "STUDENTS" | "GROUPS";
+
+export default function LeaderboardPage() {
+  const students = useAppStore((s) => s.leaderboardStudents);
+  const groups = useAppStore((s) => s.leaderboardGroups);
+  const loadLeaderboard = useAppStore((s) => s.loadLeaderboard);
+
+  const [tab, setTab] = useState<Tab>("STUDENTS");
+
+  useEffect(() => {
+    void loadLeaderboard();
+    const timer = setInterval(() => void loadLeaderboard(), 10_000);
+    return () => clearInterval(timer);
+  }, [loadLeaderboard]);
+
+  return (
+    <main className="px-4 pt-6">
+      <div className="mx-auto w-full max-w-2xl space-y-4">
+        <AppTopBar />
+
+        <h1 className="text-2xl font-bold text-center text-cyan-100">Лидерборд</h1>
+
+        <div className="flex gap-2 rounded-xl border border-cyan-200/20 bg-slate-900/40 p-1">
+          {(["STUDENTS", "GROUPS"] as const).map((currentTab) => (
+            <button
+              key={currentTab}
+              onClick={() => setTab(currentTab)}
+              className={[
+                "flex-1 py-2 px-3 text-sm font-medium rounded-lg border transition",
+                tab === currentTab
+                  ? "border-cyan-300/60 bg-cyan-300/15 text-cyan-100"
+                  : "border-transparent text-slate-400 hover:text-slate-300",
+              ].join(" ")}
+            >
+              {currentTab === "STUDENTS" ? "Топ студентов" : "Топ групп"}
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-2xl border border-cyan-200/20 bg-slate-900/40 overflow-hidden">
+          <div className="divide-y divide-slate-800">
+            {tab === "STUDENTS"
+              ? students.map((student) => {
+                  const coin = staticCatalog.coins.find((item) => item.id === student.activeCoinId);
+
+                  return (
+                    <div
+                      key={student.id}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/30 transition"
+                    >
+                      <div className="w-8 text-lg font-bold text-center">
+                        {student.rank === 1 ? "🥇" : student.rank === 2 ? "🥈" : student.rank === 3 ? "🥉" : student.rank}
+                      </div>
+
+                      <div className="w-10 h-10 rounded-xl border border-cyan-200/30 bg-slate-800 flex items-center justify-center text-xs font-semibold text-cyan-100">
+                        {initials(student.fullName)}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-100 truncate">{student.fullName}</p>
+                        <p className="text-xs text-slate-500 truncate">{student.group}</p>
+                      </div>
+
+                      <div className="min-w-[110px] text-right">
+                        <p className="text-sm font-bold text-cyan-100">{formatCoins(student.balance)} MC</p>
+                        <p className="text-xs text-slate-500">{coin?.rarity ?? "COMMON"}</p>
+                      </div>
+                    </div>
+                  );
+                })
+              : groups.map((group) => (
+                  <div
+                    key={group.group}
+                    className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/30 transition"
+                  >
+                    <div className="w-8 text-lg font-bold text-center">
+                      {group.rank === 1 ? "🥇" : group.rank === 2 ? "🥈" : group.rank === 3 ? "🥉" : group.rank}
+                    </div>
+
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-100">{group.group}</p>
+                    </div>
+
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-cyan-100">{formatCoins(group.totalBalance)} MC</p>
+                    </div>
+                  </div>
+                ))}
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
