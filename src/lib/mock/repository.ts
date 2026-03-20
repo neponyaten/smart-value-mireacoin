@@ -10,12 +10,20 @@ import {
   type MockInternalUser,
 } from "@/lib/mock/data";
 import type {
+  ActiveUserItem,
   AppUser,
   AuthProviderMode,
+  FeedStatusItem,
   LeaderboardGroup,
   LeaderboardStudent,
   LedgerItem,
   MarketItem,
+  ProfileSettingsInput,
+  PublicInventoryItem,
+  PublicUserProfile,
+  ReportReason,
+  ReportTargetType,
+  TopUser,
 } from "@/lib/types/domain";
 
 type SessionRecord = {
@@ -25,10 +33,38 @@ type SessionRecord = {
   expiresAt: number;
 };
 
+type ProfileViewRecord = {
+  id: string;
+  profileOwnerId: string;
+  viewerUserId: string;
+  viewedAt: string;
+};
+
+type UserStatusRecord = {
+  id: string;
+  userId: string;
+  text: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ContentReportRecord = {
+  id: string;
+  reporterUserId: string;
+  targetUserId?: string;
+  targetStatusId?: string;
+  targetType: ReportTargetType;
+  reason: ReportReason;
+  createdAt: string;
+};
+
 type MockDb = {
   users: MockInternalUser[];
   ledgerByUserId: Record<string, LedgerItem[]>;
   sessions: Map<string, SessionRecord>;
+  profileViews: ProfileViewRecord[];
+  statuses: UserStatusRecord[];
+  reports: ContentReportRecord[];
 };
 
 declare global {
@@ -37,10 +73,30 @@ declare global {
 }
 
 function createDb(): MockDb {
+  const now = Date.now();
+
   return {
     users: structuredClone(usersSeed),
     ledgerByUserId: structuredClone(ledgerSeed),
     sessions: new Map<string, SessionRecord>(),
+    profileViews: [],
+    statuses: [
+      {
+        id: `status-${crypto.randomUUID()}`,
+        userId: "u-leader-1",
+        text: "Собираем актив по группе на этой неделе. Го в топ 1.",
+        createdAt: new Date(now - 1000 * 60 * 30).toISOString(),
+        updatedAt: new Date(now - 1000 * 60 * 30).toISOString(),
+      },
+      {
+        id: `status-${crypto.randomUUID()}`,
+        userId: "u-student-2",
+        text: "Сегодня тестирую новый VFX билд, выглядит огонь.",
+        createdAt: new Date(now - 1000 * 60 * 80).toISOString(),
+        updatedAt: new Date(now - 1000 * 60 * 80).toISOString(),
+      },
+    ],
+    reports: [],
   };
 }
 
@@ -49,6 +105,134 @@ function db() {
     global.__mireaMockDb = createDb();
   }
   return global.__mireaMockDb;
+}
+
+function splitName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0],
+    lastName: parts.length > 1 ? parts[parts.length - 1] : undefined,
+  };
+}
+
+function mapStatusItem(record: UserStatusRecord): FeedStatusItem | null {
+  const user = db().users.find((candidate) => candidate.id === record.userId);
+  if (!user) {
+    return null;
+  }
+
+  const names = splitName(user.fullName);
+  return {
+    id: record.id,
+    userId: user.id,
+    displayName: user.displayName || user.fullName,
+    firstName: user.firstName || names.firstName,
+    lastName: user.lastName || names.lastName,
+    text: record.text,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+  };
+}
+
+const PROFILE_VIEW_WINDOW_MS = 24 * 60 * 60 * 1000;
+const STATUS_COOLDOWN_MS = 60 * 60 * 1000;
+const REPORT_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+function buildBadges(user: AppUser): string[] {
+  const badges: string[] = [];
+  if (user.role === "LEADER") {
+    badges.push("Group Captain");
+  }
+  if (user.balance >= 1000) {
+    badges.push("MC Whale");
+  }
+  if (user.ownedCoinIds.length + user.ownedVfxIds.length >= 4) {
+    badges.push("Collector");
+  }
+  if (badges.length === 0) {
+    badges.push("Rising Player");
+  }
+  return badges;
+}
+
+function userInventoryShowcase(user: AppUser): PublicInventoryItem[] {
+  const coin = coinCatalog.find((item) => item.id === user.activeCoinId);
+  const vfx = vfxCatalog.find((item) => item.id === user.activeVfxId);
+
+  return [
+    coin
+      ? {
+          id: coin.id,
+          category: "COIN",
+          rarity: coin.rarity,
+          name: coin.name,
+        }
+      : null,
+    vfx
+      ? {
+          id: vfx.id,
+          category: "VFX",
+          rarity: vfx.rarity,
+          name: vfx.name,
+        }
+      : null,
+  ].filter((item): item is PublicInventoryItem => Boolean(item));
+}
+
+function toPublicProfile(user: AppUser): PublicUserProfile {
+  const users = db().users.map((entry) => publicUser(entry));
+  const rank = [...users].sort((a, b) => b.balance - a.balance).findIndex((entry) => entry.id === user.id) + 1;
+  const names = splitName(user.fullName);
+  const views = db()
+    .profileViews
+    .filter((item) => item.profileOwnerId === user.id)
+    .sort((a, b) => (a.viewedAt < b.viewedAt ? 1 : -1));
+
+  const allInventory: PublicInventoryItem[] = [
+    ...user.ownedCoinIds
+      .map((coinId) => coinCatalog.find((coin) => coin.id === coinId))
+      .filter((coin): coin is NonNullable<typeof coin> => Boolean(coin))
+      .map((coin) => ({
+        id: coin.id,
+        category: "COIN" as const,
+        rarity: coin.rarity,
+        name: coin.name,
+      })),
+    ...user.ownedVfxIds
+      .map((vfxId) => vfxCatalog.find((item) => item.id === vfxId))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .map((item) => ({
+        id: item.id,
+        category: "VFX" as const,
+        rarity: item.rarity,
+        name: item.name,
+      })),
+  ];
+
+  const contacts = {
+    telegramUrl: user.showTelegram && user.telegramUrl ? user.telegramUrl : undefined,
+    vkUrl: user.showVk && user.vkUrl ? user.vkUrl : undefined,
+    maxUrl: user.showMax && user.maxUrl ? user.maxUrl : undefined,
+  };
+
+  return {
+    id: user.id,
+    displayName: user.displayName || user.fullName,
+    firstName: user.firstName || names.firstName,
+    lastName: user.lastName || names.lastName,
+    rank,
+    balance: user.balance,
+    profileViews: views.length,
+    recentViewTimestamps: views.slice(0, 10).map((item) => item.viewedAt),
+    bio: user.bio,
+    group: user.showGroup ? user.group : undefined,
+    activeCoinId: user.activeCoinId,
+    activeVfxId: user.activeVfxId,
+    badges: buildBadges(user),
+    showcase: userInventoryShowcase(user),
+    inventory: user.showInventory ? allInventory : undefined,
+    contacts,
+  };
 }
 
 export const mockRepository = {
@@ -106,7 +290,11 @@ export const mockRepository = {
       id: `u-${crypto.randomUUID()}`,
       studentId: payload.studentId,
       email: payload.email,
+      displayName: payload.fullName,
+      firstName: splitName(payload.fullName).firstName,
+      lastName: splitName(payload.fullName).lastName,
       fullName: payload.fullName,
+      bio: "Новый участник MireaCoin beta.",
       group: payload.group,
       role: "STUDENT",
       balance: 180,
@@ -114,6 +302,14 @@ export const mockRepository = {
       attendanceStatus: "ACTIVE",
       avatarUrl: `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(payload.studentId)}`,
       hideInventory: false,
+      showInventory: true,
+      showGroup: true,
+      showTelegram: false,
+      showVk: false,
+      showMax: false,
+      telegramUrl: "",
+      vkUrl: "",
+      maxUrl: "",
       referralCode: `MIREA-${payload.studentId}`,
       ownedCoinIds: ["coin-common"],
       ownedVfxIds: ["vfx-blue-energy"],
@@ -125,6 +321,7 @@ export const mockRepository = {
         LEADERBOARD: "vfx-blue-energy",
       },
       providerMode: payload.providerMode,
+      lastSeenAt: new Date().toISOString(),
       password: payload.password,
     };
 
@@ -177,6 +374,8 @@ export const mockRepository = {
       return null;
     }
 
+    user.lastSeenAt = new Date().toISOString();
+
     return publicUser(user);
   },
 
@@ -197,6 +396,27 @@ export const mockRepository = {
       return null;
     }
     user.hideInventory = hideInventory;
+    user.showInventory = !hideInventory;
+    return publicUser(user);
+  },
+
+  updateProfileSettings(userId: string, settings: ProfileSettingsInput) {
+    const user = db().users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return null;
+    }
+
+    user.bio = settings.bio;
+    user.showInventory = settings.showInventory;
+    user.hideInventory = !settings.showInventory;
+    user.showGroup = settings.showGroup;
+    user.showTelegram = settings.showTelegram;
+    user.showVk = settings.showVk;
+    user.showMax = settings.showMax;
+    user.telegramUrl = settings.telegramUrl;
+    user.vkUrl = settings.vkUrl;
+    user.maxUrl = settings.maxUrl;
+
     return publicUser(user);
   },
 
@@ -303,6 +523,196 @@ export const mockRepository = {
   getLeaderboard(): { students: LeaderboardStudent[]; groups: LeaderboardGroup[] } {
     const users: AppUser[] = db().users.map((user) => publicUser(user));
     return defaultLeaderboard(users);
+  },
+
+  getPublicProfileById(userId: string): PublicUserProfile | null {
+    const user = db().users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return null;
+    }
+    return toPublicProfile(publicUser(user));
+  },
+
+  registerProfileView(payload: { profileOwnerId: string; viewerUserId: string }) {
+    const current = db();
+    const now = Date.now();
+
+    if (payload.profileOwnerId === payload.viewerUserId) {
+      const total = current.profileViews.filter((item) => item.profileOwnerId === payload.profileOwnerId).length;
+      return { counted: false, totalViews: total };
+    }
+
+    const latest = current.profileViews
+      .filter(
+        (item) =>
+          item.profileOwnerId === payload.profileOwnerId &&
+          item.viewerUserId === payload.viewerUserId
+      )
+      .sort((a, b) => (a.viewedAt < b.viewedAt ? 1 : -1))[0];
+
+    if (latest && now - new Date(latest.viewedAt).getTime() < PROFILE_VIEW_WINDOW_MS) {
+      const total = current.profileViews.filter((item) => item.profileOwnerId === payload.profileOwnerId).length;
+      return { counted: false, totalViews: total };
+    }
+
+    current.profileViews.push({
+      id: `view-${crypto.randomUUID()}`,
+      profileOwnerId: payload.profileOwnerId,
+      viewerUserId: payload.viewerUserId,
+      viewedAt: new Date(now).toISOString(),
+    });
+
+    const total = current.profileViews.filter((item) => item.profileOwnerId === payload.profileOwnerId).length;
+    return { counted: true, totalViews: total };
+  },
+
+  getTopUsers(limit = 10): TopUser[] {
+    return db()
+      .users
+      .map((user) => publicUser(user))
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, limit)
+      .map((user, index) => {
+        const names = splitName(user.fullName);
+        return {
+          id: user.id,
+          displayName: user.displayName || user.fullName,
+          firstName: user.firstName || names.firstName,
+          lastName: user.lastName || names.lastName,
+          rank: index + 1,
+          balance: user.balance,
+          activeVfxId: user.activeVfxId,
+        };
+      });
+  },
+
+  getStatusFeed(limit = 20): FeedStatusItem[] {
+    return db()
+      .statuses
+      .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+      .slice(0, limit)
+      .map((entry) => mapStatusItem(entry))
+      .filter((entry): entry is FeedStatusItem => Boolean(entry));
+  },
+
+  createOrUpdateStatus(userId: string, text: string) {
+    const current = db();
+    const now = Date.now();
+    const cleanText = text.trim().replace(/\s+/g, " ").slice(0, 200);
+
+    if (!cleanText) {
+      return { error: "Статус не должен быть пустым" } as const;
+    }
+
+    const previous = current.statuses.find((item) => item.userId === userId);
+    if (previous) {
+      const delta = now - new Date(previous.updatedAt).getTime();
+      if (delta < STATUS_COOLDOWN_MS) {
+        return {
+          error: "Статус можно обновлять не чаще одного раза в час",
+          cooldownRemainingMs: STATUS_COOLDOWN_MS - delta,
+        } as const;
+      }
+
+      previous.text = cleanText;
+      previous.updatedAt = new Date(now).toISOString();
+      return { status: mapStatusItem(previous) } as const;
+    }
+
+    const created: UserStatusRecord = {
+      id: `status-${crypto.randomUUID()}`,
+      userId,
+      text: cleanText,
+      createdAt: new Date(now).toISOString(),
+      updatedAt: new Date(now).toISOString(),
+    };
+
+    current.statuses.push(created);
+    return { status: mapStatusItem(created) } as const;
+  },
+
+  touchLastSeen(userId: string) {
+    const user = db().users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return null;
+    }
+    user.lastSeenAt = new Date().toISOString();
+    return publicUser(user);
+  },
+
+  getActiveUsers(limit = 12): ActiveUserItem[] {
+    const now = Date.now();
+    const ONLINE_WINDOW = 10 * 60 * 1000;
+
+    return db()
+      .users
+      .map((user) => {
+        const names = splitName(user.fullName);
+        const lastSeenAt = user.lastSeenAt || new Date(now - 1000 * 60 * 60).toISOString();
+        return {
+          id: user.id,
+          displayName: user.displayName || user.fullName,
+          firstName: user.firstName || names.firstName,
+          lastName: user.lastName || names.lastName,
+          lastSeenAt,
+          isOnline: now - new Date(lastSeenAt).getTime() <= ONLINE_WINDOW,
+        };
+      })
+      .sort((a, b) => (a.lastSeenAt < b.lastSeenAt ? 1 : -1))
+      .slice(0, limit);
+  },
+
+  createReport(payload: {
+    reporterUserId: string;
+    targetType: ReportTargetType;
+    reason: ReportReason;
+    targetUserId?: string;
+    targetStatusId?: string;
+  }) {
+    const current = db();
+    const now = Date.now();
+
+    if (payload.targetType === "profile") {
+      if (!payload.targetUserId) {
+        return { error: "Не указан пользователь для жалобы" } as const;
+      }
+
+      if (payload.targetUserId === payload.reporterUserId) {
+        return { error: "Нельзя отправить жалобу на свой профиль" } as const;
+      }
+    }
+
+    if (payload.targetType === "status") {
+      if (!payload.targetStatusId) {
+        return { error: "Не указан статус для жалобы" } as const;
+      }
+    }
+
+    const duplicate = current.reports
+      .filter(
+        (item) =>
+          item.reporterUserId === payload.reporterUserId &&
+          item.targetType === payload.targetType &&
+          item.targetUserId === payload.targetUserId &&
+          item.targetStatusId === payload.targetStatusId
+      )
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+
+    if (duplicate && now - new Date(duplicate.createdAt).getTime() < REPORT_WINDOW_MS) {
+      return { error: "Похожая жалоба уже отправлена недавно" } as const;
+    }
+
+    current.reports.push({
+      id: `report-${crypto.randomUUID()}`,
+      reporterUserId: payload.reporterUserId,
+      targetType: payload.targetType,
+      targetUserId: payload.targetUserId,
+      targetStatusId: payload.targetStatusId,
+      reason: payload.reason,
+      createdAt: new Date(now).toISOString(),
+    });
+
+    return { ok: true } as const;
   },
 
   getMarketItems(): MarketItem[] {

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AppTopBar } from "@/components/layout/AppTopBar";
-import { formatCoins, initials } from "@/lib/utils/format";
+import { InitialsAvatar } from "@/components/ui/InitialsAvatar";
+import { formatCoins } from "@/lib/utils/format";
 import { staticCatalog, useAppStore } from "@/store/useAppStore";
 
 type Tab = "STUDENTS" | "GROUPS";
@@ -51,17 +53,16 @@ export default function LeaderboardPage() {
                   const coin = staticCatalog.coins.find((item) => item.id === student.activeCoinId);
 
                   return (
-                    <div
+                    <Link
                       key={student.id}
+                      href={`/users/${student.id}`}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-slate-800/40 transition"
                     >
                       <div className="w-8 text-lg font-bold text-center">
                         {student.rank === 1 ? "🥇" : student.rank === 2 ? "🥈" : student.rank === 3 ? "🥉" : student.rank}
                       </div>
 
-                      <div className="w-10 h-10 rounded-xl border border-cyan-200/30 bg-slate-800 flex items-center justify-center text-xs font-semibold text-cyan-100">
-                        {initials(student.fullName)}
-                      </div>
+                      <InitialsAvatar userId={student.id} displayName={student.fullName} size="sm" />
 
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-slate-100 truncate">{student.fullName}</p>
@@ -72,7 +73,7 @@ export default function LeaderboardPage() {
                         <p className="text-sm font-bold text-cyan-100">{formatCoins(student.balance)} MC</p>
                         <p className="text-xs text-slate-500">{coin?.rarity ?? "COMMON"}</p>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })
               : groups.map((group) => (
