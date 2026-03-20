@@ -17,7 +17,7 @@ export default function HistoryPage() {
 
   return (
     <main className="px-4 pb-24 pt-6">
-      <div className="mx-auto w-full max-w-md glass rounded-2xl p-4 border border-white/10">
+      <div className="mx-auto w-full max-w-md premium-card rounded-2xl p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-xl font-bold text-neon">История</h1>
 
@@ -42,7 +42,7 @@ export default function HistoryPage() {
             {ledger.map((it) => (
               <div
                 key={it.id}
-                className="rounded-xl bg-black/30 border border-white/10 p-3"
+                className="premium-card rounded-xl p-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -57,10 +57,10 @@ export default function HistoryPage() {
                   <div
                     className={[
                       "text-sm font-bold",
-                      it.delta >= 0 ? "text-neon" : "text-red-400",
+                      it.amount >= 0 ? "text-neon" : "text-red-400",
                     ].join(" ")}
                   >
-                    {it.delta >= 0 ? `+${it.delta}` : it.delta}
+                    {it.amount >= 0 ? `+${it.amount}` : it.amount}
                   </div>
                 </div>
               </div>

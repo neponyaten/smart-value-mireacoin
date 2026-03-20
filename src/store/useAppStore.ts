@@ -6,6 +6,7 @@ import type {
   LeaderboardStudent,
   LedgerItem,
   MarketItem,
+  ProfileSettingsInput,
 } from "@/lib/types/domain";
 import { apiClient } from "@/lib/api/client";
 import { create } from "zustand";
@@ -45,6 +46,7 @@ type AppState = {
   purchaseItem: (marketItemId: string) => Promise<void>;
   syncAttendance: () => Promise<void>;
   setHideInventory: (hideInventory: boolean) => Promise<void>;
+  updateProfile: (payload: ProfileSettingsInput) => Promise<void>;
   setActiveCoin: (coinId: string) => Promise<void>;
   setActiveVfx: (vfxId: string) => Promise<void>;
 
@@ -56,7 +58,23 @@ type AppState = {
 };
 
 function applyUser(user: AppUser) {
-  return { ...user, coins: user.balance };
+  return {
+    ...user,
+    displayName: user.displayName || user.fullName,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    coins: user.balance,
+    showInventory: user.showInventory ?? !user.hideInventory,
+    showGroup: user.showGroup ?? true,
+    showTelegram: user.showTelegram ?? false,
+    showVk: user.showVk ?? false,
+    showMax: user.showMax ?? false,
+    bio: user.bio ?? "",
+    telegramUrl: user.telegramUrl ?? "",
+    vkUrl: user.vkUrl ?? "",
+    maxUrl: user.maxUrl ?? "",
+    lastSeenAt: user.lastSeenAt ?? new Date().toISOString(),
+  };
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -179,6 +197,17 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ user: applyUser(user) });
     } catch (error) {
       set({ error: (error as Error).message });
+      throw error;
+    }
+  },
+
+  updateProfile: async (payload) => {
+    set({ isBusy: true, error: "" });
+    try {
+      const { user } = await apiClient.updateProfile(payload);
+      set({ user: applyUser(user), isBusy: false });
+    } catch (error) {
+      set({ isBusy: false, error: (error as Error).message });
       throw error;
     }
   },

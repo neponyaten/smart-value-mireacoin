@@ -1,10 +1,16 @@
 import type {
+  ActiveUserItem,
   AppUser,
   AuthProviderMode,
+  FeedStatusItem,
   LedgerItem,
   MarketItem,
   LeaderboardGroup,
   LeaderboardStudent,
+  ProfileSettingsInput,
+  PublicUserProfile,
+  ReportReason,
+  TopUser,
 } from "@/lib/types/domain";
 
 type ApiError = { message: string };
@@ -87,10 +93,73 @@ export const apiClient = {
     });
   },
 
-  updateProfile(payload: { hideInventory: boolean }) {
+  updateProfile(payload: ProfileSettingsInput | { hideInventory: boolean }) {
     return request<{ user: AppUser }>("/api/user/me", {
       method: "PATCH",
       body: JSON.stringify(payload),
+    });
+  },
+
+  publicProfile(userId: string) {
+    return request<{ profile: PublicUserProfile }>(`/api/users/${encodeURIComponent(userId)}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  topUsers() {
+    return request<{ users: TopUser[] }>("/api/social/top", {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  statusFeed(limit = 20) {
+    return request<{ items: FeedStatusItem[] }>(`/api/social/feed?limit=${limit}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  createOrUpdateStatus(text: string) {
+    return request<{ item: FeedStatusItem; cooldownRemainingMs?: number }>("/api/social/status", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    });
+  },
+
+  activeUsers() {
+    return request<{ users: ActiveUserItem[] }>("/api/social/active", {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  heartbeat() {
+    return request<{ ok: true }>("/api/social/heartbeat", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  },
+
+  registerProfileView(userId: string) {
+    return request<{ counted: boolean; totalViews: number }>(`/api/users/${encodeURIComponent(userId)}/view`, {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  },
+
+  reportUser(targetUserId: string, reason: ReportReason) {
+    return request<{ ok: true }>("/api/social/report/user", {
+      method: "POST",
+      body: JSON.stringify({ targetUserId, reason }),
+    });
+  },
+
+  reportStatus(targetStatusId: string, reason: ReportReason) {
+    return request<{ ok: true }>("/api/social/report/status", {
+      method: "POST",
+      body: JSON.stringify({ targetStatusId, reason }),
     });
   },
 

@@ -49,8 +49,8 @@ export default function ShopPage() {
               className={[
                 "px-4 py-2 text-sm font-medium rounded-full border transition",
                 tab === kind
-                  ? "border-cyan-300/60 bg-cyan-300/15 text-cyan-100"
-                  : "border-slate-600/40 bg-slate-800/30 text-slate-400 hover:border-slate-500/60",
+                  ? "border-cyan-300/70 bg-cyan-300/15 text-cyan-100 shadow-[0_0_24px_-12px_rgba(34,211,238,0.9)]"
+                  : "border-slate-600/40 bg-slate-900/30 text-slate-400 hover:border-cyan-200/40",
               ].join(" ")}
             >
               {kind === "ALL" ? "Все" : kind === "COIN" ? "Монеты" : "VFX"}
@@ -74,14 +74,14 @@ export default function ShopPage() {
               : null;
 
             const title = coin?.name ?? vfx?.name ?? "Item";
-            const subtitle = coin?.rarity ?? vfx?.tier ?? "BASE";
+            const subtitle = coin?.rarity ?? vfx?.rarity ?? "BASE";
             const owned = isOwned(item.category, item.itemId);
             const canAfford = (user?.balance ?? 0) >= item.price;
 
             return (
               <div
                 key={item.id}
-                className="rounded-2xl border border-cyan-200/20 bg-slate-900/40 overflow-hidden hover:border-cyan-200/60 transition"
+                className="premium-card rounded-2xl overflow-hidden hover:border-cyan-200/60 transition"
               >
                 <div className="relative h-36 w-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
                   {coin ? (
@@ -113,7 +113,7 @@ export default function ShopPage() {
                         "mt-4 w-full rounded-lg border px-3 py-2 text-xs font-semibold transition",
                         !canAfford
                           ? "border-red-400/35 bg-red-400/10 text-red-300 cursor-not-allowed"
-                          : "border-cyan-300/40 bg-cyan-300/10 text-cyan-100 hover:border-cyan-300/70",
+                          : "border-cyan-300/50 bg-cyan-300/10 text-cyan-100 hover:border-cyan-300/80 shadow-[0_0_20px_-12px_rgba(34,211,238,0.8)]",
                       ].join(" ")}
                     >
                       {canAfford ? `${formatCoins(item.price)} MC` : "Недостаточно MC"}

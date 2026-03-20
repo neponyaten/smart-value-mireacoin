@@ -39,6 +39,9 @@ export default function LandingNavbar() {
               <span className="text-neon font-extrabold">M</span>
             </div>
             <span className="text-sm text-gray-200/90">MireaCoin</span>
+            <span className="hidden sm:inline-flex rounded-full border border-cyan-300/25 bg-cyan-300/10 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-cyan-100/90">
+              Beta
+            </span>
           </button>
 
           {/* links */}
@@ -61,13 +64,13 @@ export default function LandingNavbar() {
           <div className="flex items-center gap-3">
             <Link
               href="/auth"
-              className="px-5 py-2 rounded-full bg-black/35 border border-white/10 text-gray-200 hover:text-white hover:border-white/20 transition"
+              className="premium-btn-secondary hidden sm:inline-flex px-5 py-2 rounded-full"
             >
-              Авторизоваться
+              Авторизация
             </Link>
             <Link
               href="/auth"
-              className="px-5 py-2 rounded-full bg-neon text-black font-semibold shadow-neon hover:scale-[1.03] active:scale-[0.98] transition duration-200 btn-glow"
+              className="premium-btn-primary px-5 py-2 rounded-full font-semibold"
             >
               Начать
             </Link>

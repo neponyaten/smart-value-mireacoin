@@ -8,12 +8,86 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
+  id           Int       @id @default(autoincrement())
+  email        String    @unique
+  displayName  String
+  firstName    String?
+  lastName     String?
   fullName     String
   group        String
-  role         String   @default("Студент")
+  role         String    @default("Студент")
   passwordHash String
-  coins        Int      @default(0)
-  createdAt    DateTime @default(now())
+  coins        Int       @default(0)
+  lastSeenAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  publicProfileSettings PublicProfileSettings?
+  profileViewsReceived  ProfileView[]      @relation("ProfileOwnerViews")
+  profileViewsSent      ProfileView[]      @relation("ProfileViewerViews")
+  statuses              UserStatus[]
+  reportsSent           ContentReport[]    @relation("ReporterReports")
+  reportsOnUser         ContentReport[]    @relation("TargetUserReports")
+}
+
+model PublicProfileSettings {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  bio           String   @default("")
+  showInventory Boolean  @default(true)
+  showGroup     Boolean  @default(true)
+  showTelegram  Boolean  @default(false)
+  showVk        Boolean  @default(false)
+  showMax       Boolean  @default(false)
+  telegramUrl   String   @default("")
+  vkUrl         String   @default("")
+  maxUrl        String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProfileView {
+  id             Int      @id @default(autoincrement())
+  profileOwnerId Int
+  viewerUserId   Int
+  viewedAt       DateTime @default(now())
+
+  profileOwner User @relation("ProfileOwnerViews", fields: [profileOwnerId], references: [id], onDelete: Cascade)
+  viewerUser   User @relation("ProfileViewerViews", fields: [viewerUserId], references: [id], onDelete: Cascade)
+
+  @@index([profileOwnerId, viewerUserId, viewedAt])
+  @@index([profileOwnerId, viewedAt])
+}
+
+model UserStatus {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports ContentReport[]
+
+  @@index([updatedAt])
+  @@index([userId, updatedAt])
+}
+
+model ContentReport {
+  id             Int      @id @default(autoincrement())
+  reporterUserId Int
+  targetUserId   Int?
+  targetStatusId Int?
+  targetType     String
+  reason         String
+  createdAt      DateTime @default(now())
+
+  reporter   User       @relation("ReporterReports", fields: [reporterUserId], references: [id], onDelete: Cascade)
+  targetUser User?      @relation("TargetUserReports", fields: [targetUserId], references: [id], onDelete: SetNull)
+  targetStatus UserStatus? @relation(fields: [targetStatusId], references: [id], onDelete: SetNull)
+
+  @@index([targetType, targetUserId, targetStatusId])
+  @@index([reporterUserId, createdAt])
 }

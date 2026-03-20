@@ -25,6 +25,8 @@ export default function AuthPage() {
   }, [user, router]);
 
   const [mode, setMode] = useState<Mode>("login");
+  const [isMireaAvailable, setIsMireaAvailable] = useState(false);
+  const [mireaMessage, setMireaMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     login: "ivan.ivanov@mirea.ru",
     password: "123456",
@@ -33,7 +35,37 @@ export default function AuthPage() {
     group: "",
     studentId: "",
   });
-  const [providerMode, setProviderMode] = useState<"LKS" | "ATTENDANCE">("LKS");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkMireaProvider = async () => {
+      try {
+        const response = await fetch("/api/auth/providers", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("unavailable");
+        }
+
+        const providers = (await response.json()) as Record<string, unknown>;
+        const available = Boolean(providers?.mirea);
+
+        if (!cancelled) {
+          setIsMireaAvailable(available);
+          setMireaMessage(available ? null : "Авторизация через МИРЭА временно недоступна");
+        }
+      } catch {
+        if (!cancelled) {
+          setIsMireaAvailable(false);
+          setMireaMessage("Авторизация через МИРЭА временно недоступна");
+        }
+      }
+    };
+
+    checkMireaProvider();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -51,7 +83,7 @@ export default function AuthPage() {
         await login({
           login: formData.login,
           password: formData.password,
-          providerMode,
+          providerMode: "LKS",
         });
       } else {
         await register({
@@ -60,7 +92,7 @@ export default function AuthPage() {
           group: formData.group,
           studentId: formData.studentId,
           password: formData.password,
-          providerMode,
+          providerMode: "LKS",
         });
       }
     } catch {
@@ -71,12 +103,57 @@ export default function AuthPage() {
     <main className="min-h-screen flex items-center justify-center px-4 py-8">
       <CosmicBackground />
 
-      <div className="relative z-10 w-full max-w-md">
-        <div className="rounded-3xl border border-cyan-200/30 bg-slate-950/80 backdrop-blur-xl shadow-[0_0_42px_rgba(34,211,238,0.16)] p-8">
+      <div className="relative z-10 w-full max-w-4xl">
+        <div className="premium-card rounded-3xl p-8">
           <h1 className="text-3xl font-bold text-center text-cyan-100 mb-1">MireaCoin</h1>
-          <p className="text-xs text-center text-slate-400 uppercase tracking-widest mb-8">Платформа активности</p>
+          <p className="text-xs text-center text-slate-400 uppercase tracking-widest mb-8">Платформа активности • Beta</p>
 
-          <div className="flex gap-2 mb-6 border border-cyan-200/20 rounded-xl p-1 bg-slate-900/40">
+          <div className="mb-8 grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                clearError();
+              }}
+              disabled={!isMireaAvailable}
+              className={[
+                "rounded-2xl p-4 text-left transition border premium-card",
+                isMireaAvailable
+                  ? "border-white/10 bg-black/25 hover:border-cyan-200/35"
+                  : "border-amber-300/35 bg-amber-400/10",
+              ].join(" ")}
+            >
+              <div className="text-xs uppercase tracking-widest text-cyan-200/80">Основной поток</div>
+              <div className="mt-1 text-sm font-semibold text-white">Войти через МИРЭА</div>
+              <div className="mt-2 text-xs text-slate-400">Для синхронизации учебных данных</div>
+              {!isMireaAvailable && (
+                <div className="mt-3 inline-flex rounded-full border border-amber-300/45 bg-amber-300/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-100">
+                  Недоступно
+                </div>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                clearError();
+              }}
+              className="premium-card rounded-2xl border border-cyan-200/35 bg-cyan-300/10 p-4 text-left hover:bg-cyan-300/15 transition"
+            >
+              <div className="text-xs uppercase tracking-widest text-cyan-100/90">Ранний доступ</div>
+              <div className="mt-1 text-sm font-semibold text-white">Участвовать в бета-тесте</div>
+              <div className="mt-2 text-xs text-slate-300">Регистрация и вход в актуальную версию</div>
+            </button>
+          </div>
+
+          {mireaMessage && (
+            <div className="mb-6 rounded-xl border border-amber-300/45 bg-amber-400/12 px-4 py-3 text-sm text-amber-100">
+              {mireaMessage}
+            </div>
+          )}
+
+          <div className="flex gap-2 mb-6 border border-cyan-200/20 rounded-xl p-1 bg-slate-900/45">
             <button
               type="button"
               onClick={() => {
@@ -105,26 +182,6 @@ export default function AuthPage() {
             >
               Регистрация
             </button>
-          </div>
-
-          <div className="mb-6">
-            <label className="block text-xs uppercase tracking-widest text-slate-400 mb-2">Provider Mode</label>
-            <div className="flex gap-2">
-              {(["LKS", "ATTENDANCE"] as const).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setProviderMode(mode)}
-                  className={`flex-1 py-2 px-3 text-xs font-medium rounded-lg border transition ${
-                    providerMode === mode
-                      ? "border-cyan-300/60 bg-cyan-300/15 text-cyan-100"
-                      : "border-slate-600/40 bg-slate-800/30 text-slate-400 hover:border-slate-500/60"
-                  }`}
-                >
-                  {mode}
-                </button>
-              ))}
-            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
@@ -198,14 +255,14 @@ export default function AuthPage() {
             <NeonButton
               type="submit"
               disabled={isBusy}
-              className="w-full py-3 text-base font-semibold shadow-[0_0_28px_rgba(34,211,238,0.24)]"
+              className="w-full py-3 text-base font-semibold"
             >
               {isBusy ? "Загружаем..." : mode === "login" ? "Войти" : "Создать аккаунт"}
             </NeonButton>
           </form>
 
           <p className="mt-6 text-center text-xs text-slate-500">
-            Демо-учетные данные для тестирования указаны по умолчанию ↑
+              Демо-учетные данные для beta-теста указаны по умолчанию ↑
           </p>
         </div>
       </div>
