@@ -19,7 +19,7 @@ export function AppNavigation() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-5xl px-3 pb-3">
       <div className="premium-card rounded-3xl px-2 py-2 backdrop-blur-xl">
-        <ul className="grid grid-cols-5 gap-1">
+        <ul className="grid grid-cols-5 gap-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;

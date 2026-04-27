@@ -1,5 +1,8 @@
 import type {
   ActiveUserItem,
+  Achievement,
+  AchievementProgress,
+  AchievementUnlockResult,
   AppUser,
   AuthProviderMode,
   FeedStatusItem,
@@ -7,9 +10,11 @@ import type {
   MarketItem,
   LeaderboardGroup,
   LeaderboardStudent,
+  NotificationItem,
   ProfileSettingsInput,
   PublicUserProfile,
   ReportReason,
+  UserAchievementView,
   TopUser,
 } from "@/lib/types/domain";
 
@@ -172,5 +177,54 @@ export const apiClient = {
 
   ledger() {
     return request<{ items: LedgerItem[] }>("/api/ledger", { method: "GET", cache: "no-store" });
+  },
+
+  getNotifications(limit = 30) {
+    return request<{ items: NotificationItem[]; unreadCount: number }>(`/api/notifications?limit=${limit}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  markNotificationRead(notificationId: string) {
+    return request<{ item: NotificationItem }>("/api/notifications/read", {
+      method: "POST",
+      body: JSON.stringify({ notificationId }),
+    });
+  },
+
+  markAllNotificationsRead() {
+    return request<{ updated: number }>("/api/notifications/read", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  },
+
+  createAchievement(payload: {
+    title: string;
+    description: string;
+    reward: number;
+    rarity: string;
+    icon: string;
+    category: string;
+  }) {
+    return request<{ achievement: Achievement }>("/api/achievements", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  getUserAchievements() {
+    return request<{ items: UserAchievementView[]; progress: AchievementProgress }>("/api/achievements", {
+      method: "GET",
+      cache: "no-store",
+    });
+  },
+
+  unlockAchievement(achievementId: string) {
+    return request<AchievementUnlockResult>("/api/achievements/unlock", {
+      method: "POST",
+      body: JSON.stringify({ achievementId }),
+    });
   },
 };

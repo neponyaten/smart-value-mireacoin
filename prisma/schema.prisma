@@ -16,8 +16,12 @@ model User {
   fullName     String
   group        String
   role         String    @default("Студент")
+  userType     String    @default("user")
   passwordHash String
   coins        Int       @default(0)
+  isBlocked    Boolean   @default(false)
+  blockedAt    DateTime?
+  blockedReason String?
   lastSeenAt   DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -28,6 +32,14 @@ model User {
   statuses              UserStatus[]
   reportsSent           ContentReport[]    @relation("ReporterReports")
   reportsOnUser         ContentReport[]    @relation("TargetUserReports")
+  reportsReviewed       ContentReport[]    @relation("ContentReportReviewedBy")
+  notifications         Notification[]
+  userAchievements      UserAchievement[]
+  userVfxGrants         UserVfxGrant[]
+  adminAuditLogs        AdminAuditLog[]
+  betaApplicationsDecided BetaApplication[] @relation("BetaApplicationDecidedBy")
+  betaApplication       BetaApplication?  @relation("BetaApplicationUser")
+  systemNotificationBatches SystemNotificationBatch[]
 }
 
 model PublicProfileSettings {
@@ -82,12 +94,170 @@ model ContentReport {
   targetStatusId Int?
   targetType     String
   reason         String
+  status         String   @default("pending") // pending, resolved, rejected
+  reviewedByUserId Int?
+  reviewedAt     DateTime?
+  reviewComment  String?
   createdAt      DateTime @default(now())
 
   reporter   User       @relation("ReporterReports", fields: [reporterUserId], references: [id], onDelete: Cascade)
   targetUser User?      @relation("TargetUserReports", fields: [targetUserId], references: [id], onDelete: SetNull)
   targetStatus UserStatus? @relation(fields: [targetStatusId], references: [id], onDelete: SetNull)
+  reviewedBy User? @relation("ContentReportReviewedBy", fields: [reviewedByUserId], references: [id], onDelete: SetNull)
 
   @@index([targetType, targetUserId, targetStatusId])
   @@index([reporterUserId, createdAt])
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  type        String
+  title       String
+  description String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+}
+
+model Achievement {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  reward      Int      @default(0)
+  rarity      String
+  icon        String
+  category    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  users UserAchievement[]
+
+  @@index([category, rarity])
+}
+
+model UserAchievement {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  achievementId Int
+  unlockedAt    DateTime @default(now())
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@index([userId, unlockedAt])
+}
+
+model BetaApplication {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  fullName        String
+  academicGroup   String
+  requestedRole   String
+  whyJoin         String
+  telegramUrl     String?
+  vkUrl           String?
+  status          String   @default("pending") // pending, approved, rejected, invited, completed
+  adminComment    String?
+  decidedAt       DateTime?
+  decidedByUserId Int?
+  inviteToken     String?  @unique
+  inviteSentAt    DateTime?
+  userId          Int?     @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  decidedByUser User? @relation("BetaApplicationDecidedBy", fields: [decidedByUserId], references: [id], onDelete: SetNull)
+  user          User? @relation("BetaApplicationUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+  @@index([status, createdAt])
+}
+
+model AdminAuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  actorRole String?
+  action    String
+  targetId  Int?
+  targetUserId Int?
+  targetType String?
+  summary   String?
+  details   String?
+  changes   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([actorRole, createdAt])
+  @@index([action, createdAt])
+  @@index([targetType, targetId])
+  @@index([targetUserId, createdAt])
+}
+
+model EmailLog {
+  id        Int      @id @default(autoincrement())
+  to        String
+  subject   String
+  type      String
+  status    String   @default("sent") // sent, failed
+  error     String?
+  createdAt DateTime @default(now())
+
+  @@index([to, createdAt])
+  @@index([type, createdAt])
+}
+
+model VfxCatalogItem {
+  id         Int      @id @default(autoincrement())
+  name       String
+  code       String   @unique
+  rarity     String
+  price      Int      @default(0)
+  targetSlot String
+  preview    String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  users UserVfxGrant[]
+
+  @@index([isActive, rarity])
+}
+
+model UserVfxGrant {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  vfxItemId Int
+  grantedAt DateTime @default(now())
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vfxItem VfxCatalogItem @relation(fields: [vfxItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, vfxItemId])
+  @@index([userId, grantedAt])
+}
+
+model SystemNotificationBatch {
+  id              Int      @id @default(autoincrement())
+  sentByUserId    Int
+  targetType      String   // user, role, all
+  targetValue     String?
+  title           String
+  message         String
+  recipientsCount Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  sentByUser User @relation(fields: [sentByUserId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([targetType, createdAt])
 }

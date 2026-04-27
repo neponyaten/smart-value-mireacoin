@@ -1,8 +1,10 @@
 "use client";
 
 import { AppNavigation } from "@/components/layout/AppNavigation";
+import { ToastNotification } from "@/components/notifications/ToastNotification";
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { useAppStore } from "@/store/useAppStore";
+import { useUIStore } from "@/store/useUIStore";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -11,10 +13,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const user = useAppStore((s) => s.user);
   const isSessionLoading = useAppStore((s) => s.isSessionLoading);
   const hydrateSession = useAppStore((s) => s.hydrateSession);
+  const hydrateTheme = useUIStore((s) => s.hydrateTheme);
 
   useEffect(() => {
     hydrateSession();
   }, [hydrateSession]);
+
+  useEffect(() => {
+    hydrateTheme();
+  }, [hydrateTheme]);
 
   useEffect(() => {
     if (!isSessionLoading && !user) {
@@ -42,6 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen text-white">
       <CosmicBackground />
       <div className="relative z-0 pb-32">{children}</div>
+      <ToastNotification />
       <AppNavigation />
     </div>
   );

@@ -3,10 +3,11 @@
 import { CosmicBackground } from "@/components/layout/CosmicBackground";
 import { NeonButton } from "@/components/ui/NeonButton";
 import { useAppStore } from "@/store/useAppStore";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-type Mode = "login" | "register";
+type Mode = "login";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -16,7 +17,6 @@ export default function AuthPage() {
   const clearError = useAppStore((s) => s.clearError);
 
   const login = useAppStore((s) => s.login);
-  const register = useAppStore((s) => s.register);
 
   useEffect(() => {
     if (user) {
@@ -30,10 +30,6 @@ export default function AuthPage() {
   const [formData, setFormData] = useState({
     login: "ivan.ivanov@mirea.ru",
     password: "123456",
-    email: "",
-    fullName: "",
-    group: "",
-    studentId: "",
   });
 
   useEffect(() => {
@@ -79,22 +75,11 @@ export default function AuthPage() {
     clearError();
 
     try {
-      if (mode === "login") {
-        await login({
-          login: formData.login,
-          password: formData.password,
-          providerMode: "LKS",
-        });
-      } else {
-        await register({
-          email: formData.email,
-          fullName: formData.fullName,
-          group: formData.group,
-          studentId: formData.studentId,
-          password: formData.password,
-          providerMode: "LKS",
-        });
-      }
+      await login({
+        login: formData.login,
+        password: formData.password,
+        providerMode: "LKS",
+      });
     } catch {
     }
   };
@@ -135,15 +120,12 @@ export default function AuthPage() {
 
             <button
               type="button"
-              onClick={() => {
-                setMode("register");
-                clearError();
-              }}
+              onClick={() => router.push("/apply")}
               className="premium-card rounded-2xl border border-cyan-200/35 bg-cyan-300/10 p-4 text-left hover:bg-cyan-300/15 transition"
             >
               <div className="text-xs uppercase tracking-widest text-cyan-100/90">Ранний доступ</div>
-              <div className="mt-1 text-sm font-semibold text-white">Участвовать в бета-тесте</div>
-              <div className="mt-2 text-xs text-slate-300">Регистрация и вход в актуальную версию</div>
+              <div className="mt-1 text-sm font-semibold text-white">Подать заявку на бета-тест</div>
+              <div className="mt-2 text-xs text-slate-300">Регистрация доступна только после одобрения заявки</div>
             </button>
           </div>
 
@@ -153,92 +135,23 @@ export default function AuthPage() {
             </div>
           )}
 
-          <div className="flex gap-2 mb-6 border border-cyan-200/20 rounded-xl p-1 bg-slate-900/45">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("login");
-                clearError();
-              }}
-              className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition ${
-                mode === "login"
-                  ? "bg-cyan-400/20 text-cyan-100 border border-cyan-300/50"
-                  : "text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              Вход
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("register");
-                clearError();
-              }}
-              className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition ${
-                mode === "register"
-                  ? "bg-cyan-400/20 text-cyan-100 border border-cyan-300/50"
-                  : "text-slate-400 hover:text-slate-300"
-              }`}
-            >
-              Регистрация
-            </button>
+          <div className="mb-6 rounded-xl border border-cyan-200/20 bg-slate-900/45 p-3 text-center text-sm text-slate-300">
+            Прямая регистрация отключена. Для доступа к бете отправьте заявку на странице
+            <Link href="/apply" className="ml-1 text-cyan-200 underline underline-offset-2">
+              Подать заявку
+            </Link>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-3">
-            {mode === "register" && (
-              <>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="ФИО"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Группа (ИКБО-01-23)"
-                  name="group"
-                  value={formData.group}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Студент ID (MIR-230011)"
-                  name="studentId"
-                  value={formData.studentId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
-                  required
-                />
-              </>
-            )}
-
-            {mode === "login" && (
-              <>
-                <input
-                  type="text"
-                  placeholder="Email или Student ID"
-                  name="login"
-                  value={formData.login}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
-                  required
-                />
-              </>
-            )}
+            <input
+              type="text"
+              placeholder="Email или Student ID"
+              name="login"
+              value={formData.login}
+              onChange={handleChange}
+              className="w-full px-4 py-3 text-sm rounded-2xl border border-cyan-200/20 bg-slate-900/60 placeholder-slate-500 text-slate-100 focus:outline-none focus:border-cyan-300/60 focus:bg-slate-900 transition"
+              required
+            />
 
             <input
               type="password"
@@ -257,7 +170,7 @@ export default function AuthPage() {
               disabled={isBusy}
               className="w-full py-3 text-base font-semibold"
             >
-              {isBusy ? "Загружаем..." : mode === "login" ? "Войти" : "Создать аккаунт"}
+              {isBusy ? "Загружаем..." : "Войти"}
             </NeonButton>
           </form>
 
