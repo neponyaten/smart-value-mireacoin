@@ -18,6 +18,14 @@ export type ReportTargetType = "profile" | "status";
 
 export type ReportReason = "spam" | "abuse" | "inappropriate" | "other";
 
+export type NotificationType = "achievement" | "coins" | "market" | "system";
+
+export type AchievementRarity = "common" | "rare" | "epic" | "legendary";
+
+export type AchievementCategory = "study" | "activity" | "economy" | "social" | "rare";
+
+export type UITheme = "dark" | "light";
+
 export type CoinItem = {
   id: string;
   slug: string;
@@ -58,6 +66,7 @@ export type AppUser = {
   bio: string;
   group: string;
   role: UserRole;
+  userType?: "user" | "moderator" | "admin" | "superadmin";
   balance: number;
   coins: number;
   attendanceStatus: AttendanceStatus;
@@ -180,3 +189,60 @@ export type ActiveUserItem = {
   lastSeenAt: string;
   isOnline: boolean;
 };
+
+export type NotificationItem = {
+  id: string;
+  userId: string;
+  type: NotificationType;
+  title: string;
+  description: string;
+  isRead: boolean;
+  createdAt: string;
+};
+
+export type Achievement = {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  rarity: AchievementRarity;
+  icon: string;
+  category: AchievementCategory;
+  createdAt: string;
+};
+
+export type UserAchievement = {
+  id: string;
+  userId: string;
+  achievementId: string;
+  unlockedAt: string;
+};
+
+export type UserAchievementView = Achievement & {
+  unlockedAt?: string;
+  unlocked: boolean;
+};
+
+export type AchievementProgress = {
+  unlocked: number;
+  total: number;
+  percent: number;
+};
+
+export type AchievementUnlockResult = {
+  userAchievement: UserAchievement;
+  achievement: Achievement;
+  notification: NotificationItem;
+  rewardDelta: number;
+  newBalance: number;
+};
+
+export type ToastItem = {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType | "success";
+  createdAt: string;
+  durationMs?: number;
+};
+

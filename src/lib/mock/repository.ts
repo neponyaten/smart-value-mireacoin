@@ -11,6 +11,11 @@ import {
 } from "@/lib/mock/data";
 import type {
   ActiveUserItem,
+  Achievement,
+  AchievementCategory,
+  AchievementRarity,
+  AchievementUnlockResult,
+  AchievementProgress,
   AppUser,
   AuthProviderMode,
   FeedStatusItem,
@@ -18,6 +23,8 @@ import type {
   LeaderboardStudent,
   LedgerItem,
   MarketItem,
+  NotificationItem,
+  NotificationType,
   ProfileSettingsInput,
   PublicInventoryItem,
   PublicUserProfile,
@@ -58,6 +65,17 @@ type ContentReportRecord = {
   createdAt: string;
 };
 
+type NotificationRecord = NotificationItem;
+
+type AchievementRecord = Achievement;
+
+type UserAchievementRecord = {
+  id: string;
+  userId: string;
+  achievementId: string;
+  unlockedAt: string;
+};
+
 type MockDb = {
   users: MockInternalUser[];
   ledgerByUserId: Record<string, LedgerItem[]>;
@@ -65,6 +83,9 @@ type MockDb = {
   profileViews: ProfileViewRecord[];
   statuses: UserStatusRecord[];
   reports: ContentReportRecord[];
+  notifications: NotificationRecord[];
+  achievements: AchievementRecord[];
+  userAchievements: UserAchievementRecord[];
 };
 
 declare global {
@@ -74,6 +95,60 @@ declare global {
 
 function createDb(): MockDb {
   const now = Date.now();
+  const achievementCreatedAt = new Date(now - 1000 * 60 * 60 * 24 * 15).toISOString();
+
+  const achievements: AchievementRecord[] = [
+    {
+      id: "ach-beta",
+      title: "Участник бета-теста",
+      description: "Принял участие в раннем тестировании продукта.",
+      reward: 500,
+      rarity: "epic",
+      icon: "🧪",
+      category: "rare",
+      createdAt: achievementCreatedAt,
+    },
+    {
+      id: "ach-first-login",
+      title: "Первый вход",
+      description: "Успешно вошел в систему впервые.",
+      reward: 100,
+      rarity: "common",
+      icon: "🔓",
+      category: "activity",
+      createdAt: achievementCreatedAt,
+    },
+    {
+      id: "ach-7-days",
+      title: "7 дней подряд",
+      description: "Сохранял активность 7 дней без пропусков.",
+      reward: 300,
+      rarity: "rare",
+      icon: "📅",
+      category: "study",
+      createdAt: achievementCreatedAt,
+    },
+    {
+      id: "ach-1000-mc",
+      title: "1000 MC",
+      description: "Достиг баланса в 1000 MireaCoin.",
+      reward: 350,
+      rarity: "rare",
+      icon: "💰",
+      category: "economy",
+      createdAt: achievementCreatedAt,
+    },
+    {
+      id: "ach-top10",
+      title: "В топ-10",
+      description: "Вошел в десятку лидеров по балансу.",
+      reward: 700,
+      rarity: "legendary",
+      icon: "🏆",
+      category: "social",
+      createdAt: achievementCreatedAt,
+    },
+  ];
 
   return {
     users: structuredClone(usersSeed),
@@ -97,6 +172,38 @@ function createDb(): MockDb {
       },
     ],
     reports: [],
+    notifications: [
+      {
+        id: `notif-${crypto.randomUUID()}`,
+        userId: "u-student-1",
+        type: "system",
+        title: "Добро пожаловать в MireaCoin",
+        description: "Следите за заданиями, рынком и достижениями в одном месте.",
+        isRead: false,
+        createdAt: new Date(now - 1000 * 60 * 40).toISOString(),
+      },
+    ],
+    achievements,
+    userAchievements: [
+      {
+        id: `uach-${crypto.randomUUID()}`,
+        userId: "u-student-1",
+        achievementId: "ach-first-login",
+        unlockedAt: new Date(now - 1000 * 60 * 60 * 12).toISOString(),
+      },
+      {
+        id: `uach-${crypto.randomUUID()}`,
+        userId: "u-leader-1",
+        achievementId: "ach-first-login",
+        unlockedAt: new Date(now - 1000 * 60 * 60 * 14).toISOString(),
+      },
+      {
+        id: `uach-${crypto.randomUUID()}`,
+        userId: "u-leader-1",
+        achievementId: "ach-1000-mc",
+        unlockedAt: new Date(now - 1000 * 60 * 60 * 9).toISOString(),
+      },
+    ],
   };
 }
 
@@ -137,6 +244,48 @@ function mapStatusItem(record: UserStatusRecord): FeedStatusItem | null {
 const PROFILE_VIEW_WINDOW_MS = 24 * 60 * 60 * 1000;
 const STATUS_COOLDOWN_MS = 60 * 60 * 1000;
 const REPORT_WINDOW_MS = 12 * 60 * 60 * 1000;
+
+function createNotificationForUser(payload: {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  description: string;
+}) {
+  const notification: NotificationRecord = {
+    id: `notif-${crypto.randomUUID()}`,
+    userId: payload.userId,
+    type: payload.type,
+    title: payload.title.slice(0, 90),
+    description: payload.description.slice(0, 260),
+    isRead: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  db().notifications.push(notification);
+  return notification;
+}
+
+function normalizeAchievementRarity(input: string): AchievementRarity {
+  if (input === "rare" || input === "epic" || input === "legendary") {
+    return input;
+  }
+  return "common";
+}
+
+function normalizeAchievementCategory(input: string): AchievementCategory {
+  if (input === "study" || input === "activity" || input === "economy" || input === "social" || input === "rare") {
+    return input;
+  }
+  return "activity";
+}
+
+function achievementProgressOf(userId: string): AchievementProgress {
+  const current = db();
+  const total = current.achievements.length;
+  const unlocked = current.userAchievements.filter((item) => item.userId === userId).length;
+  const percent = total > 0 ? Math.round((unlocked / total) * 100) : 0;
+  return { unlocked, total, percent };
+}
 
 function buildBadges(user: AppUser): string[] {
   const badges: string[] = [];
@@ -390,6 +539,148 @@ export const mockRepository = {
     );
   },
 
+  getNotifications(userId: string, limit = 30) {
+    const allItems = db().notifications.filter((item) => item.userId === userId);
+    const items = allItems
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      .slice(0, limit);
+
+    const unreadCount = allItems.filter((item) => !item.isRead).length;
+    return { items, unreadCount };
+  },
+
+  markNotificationRead(userId: string, notificationId: string) {
+    const item = db().notifications.find((notification) => notification.id === notificationId);
+    if (!item || item.userId !== userId) {
+      return null;
+    }
+
+    item.isRead = true;
+    return item;
+  },
+
+  markAllNotificationsRead(userId: string) {
+    let count = 0;
+    for (const notification of db().notifications) {
+      if (notification.userId === userId && !notification.isRead) {
+        notification.isRead = true;
+        count += 1;
+      }
+    }
+    return { updated: count };
+  },
+
+  createAchievement(payload: {
+    title: string;
+    description: string;
+    reward: number;
+    rarity: string;
+    icon: string;
+    category: string;
+  }) {
+    const achievement: AchievementRecord = {
+      id: `ach-${crypto.randomUUID()}`,
+      title: payload.title.trim().slice(0, 70),
+      description: payload.description.trim().slice(0, 240),
+      reward: Math.max(0, Math.floor(payload.reward)),
+      rarity: normalizeAchievementRarity(payload.rarity),
+      icon: payload.icon.trim().slice(0, 8) || "🏅",
+      category: normalizeAchievementCategory(payload.category),
+      createdAt: new Date().toISOString(),
+    };
+
+    db().achievements.push(achievement);
+    return achievement;
+  },
+
+  getAchievements() {
+    return [...db().achievements].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  },
+
+  getUserAchievements(userId: string) {
+    const current = db();
+    const unlockedMap = new Map(
+      current.userAchievements
+        .filter((item) => item.userId === userId)
+        .map((item) => [item.achievementId, item])
+    );
+
+    const items = current.achievements
+      .map((achievement) => {
+        const unlocked = unlockedMap.get(achievement.id);
+        return {
+          ...achievement,
+          unlocked: Boolean(unlocked),
+          unlockedAt: unlocked?.unlockedAt,
+        };
+      })
+      .sort((a, b) => Number(b.unlocked) - Number(a.unlocked) || Number(a.reward) - Number(b.reward));
+
+    return {
+      items,
+      progress: achievementProgressOf(userId),
+    };
+  },
+
+  unlockAchievement(userId: string, achievementId: string): AchievementUnlockResult | { error: string } {
+    const current = db();
+    const user = current.users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return { error: "Пользователь не найден" };
+    }
+
+    const achievement = current.achievements.find((item) => item.id === achievementId);
+    if (!achievement) {
+      return { error: "Достижение не найдено" };
+    }
+
+    const already = current.userAchievements.find(
+      (item) => item.userId === userId && item.achievementId === achievementId
+    );
+    if (already) {
+      return { error: "Достижение уже выдано" };
+    }
+
+    const userAchievement: UserAchievementRecord = {
+      id: `uach-${crypto.randomUUID()}`,
+      userId,
+      achievementId,
+      unlockedAt: new Date().toISOString(),
+    };
+    current.userAchievements.push(userAchievement);
+
+    user.balance += achievement.reward;
+    user.coins = user.balance;
+
+    const ledgerItem: LedgerItem = {
+      id: `led-${crypto.randomUUID()}`,
+      type: "BONUS",
+      title: `Награда за достижение: ${achievement.title}`,
+      amount: achievement.reward,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (!current.ledgerByUserId[userId]) {
+      current.ledgerByUserId[userId] = [];
+    }
+    current.ledgerByUserId[userId].push(ledgerItem);
+
+    const notification = createNotificationForUser({
+      userId,
+      type: "achievement",
+      title: `🎉 Новое достижение: ${achievement.title}`,
+      description: `+${achievement.reward} MC начислено за выполнение достижения`,
+    });
+
+    return {
+      userAchievement,
+      achievement,
+      notification,
+      rewardDelta: achievement.reward,
+      newBalance: user.balance,
+    };
+  },
+
   setHideInventory(userId: string, hideInventory: boolean) {
     const user = db().users.find((candidate) => candidate.id === userId);
     if (!user) {
@@ -486,6 +777,18 @@ export const mockRepository = {
     }
     current.ledgerByUserId[userId].push(ledgerItem);
 
+    const purchasedName =
+      marketItem.category === "COIN"
+        ? coinCatalog.find((coin) => coin.id === marketItem.itemId)?.name
+        : vfxCatalog.find((vfx) => vfx.id === marketItem.itemId)?.name;
+
+    createNotificationForUser({
+      userId,
+      type: "market",
+      title: "Покупка в маркете",
+      description: `${purchasedName ?? "Предмет"} за ${marketItem.price} MC`,
+    });
+
     return {
       user: publicUser(user),
       ledgerItem,
@@ -516,6 +819,13 @@ export const mockRepository = {
       current.ledgerByUserId[userId] = [];
     }
     current.ledgerByUserId[userId].push(ledgerItem);
+
+    createNotificationForUser({
+      userId,
+      type: "coins",
+      title: "Начислены монеты",
+      description: `Синхронизация посещаемости: +${bonus} MC`,
+    });
 
     return { user: publicUser(user), ledgerItem };
   },
@@ -584,6 +894,11 @@ export const mockRepository = {
           activeVfxId: user.activeVfxId,
         };
       });
+  },
+
+  // Development helper: list all users (public view)
+  listUsers() {
+    return db().users.map((u) => publicUser(u));
   },
 
   getStatusFeed(limit = 20): FeedStatusItem[] {

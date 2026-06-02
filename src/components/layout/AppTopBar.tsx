@@ -1,6 +1,8 @@
 "use client";
 
 import { NeonButton } from "@/components/ui/NeonButton";
+import { NotificationDropdown } from "@/components/notifications/NotificationDropdown";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { APP_VERSION } from "@/lib/constants/app";
 import { formatCoins } from "@/lib/utils/format";
 import { useAppStore } from "@/store/useAppStore";
@@ -15,7 +17,7 @@ export function AppTopBar({ onSync }: AppTopBarProps) {
   const isBusy = useAppStore((state) => state.isBusy);
 
   return (
-    <header className="premium-card rounded-3xl px-4 py-3">
+    <header className="premium-card relative z-20 overflow-visible rounded-3xl px-4 py-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-cyan-200/75">MireaCoin</p>
@@ -24,6 +26,8 @@ export function AppTopBar({ onSync }: AppTopBarProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <NotificationDropdown />
           <div className="rounded-full border border-cyan-200/20 bg-slate-900/60 px-3 py-1.5 text-xs text-cyan-100">
             <span className="inline-flex items-center gap-1">
               <Coins className="size-3.5" />
