@@ -896,6 +896,11 @@ export const mockRepository = {
       });
   },
 
+  // Development helper: list all users (public view)
+  listUsers() {
+    return db().users.map((u) => publicUser(u));
+  },
+
   getStatusFeed(limit = 20): FeedStatusItem[] {
     return db()
       .statuses

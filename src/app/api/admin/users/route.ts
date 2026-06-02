@@ -1,6 +1,7 @@
 import { writeAdminAuditLog } from "@/lib/auth/admin-audit";
 import { isAdminRequest, resolveActorUserId } from "@/lib/auth/admin-guard";
 import { prisma } from "@/lib/prisma";
+import { mockRepository } from "@/lib/mock/repository";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -73,6 +74,34 @@ export async function GET(request: NextRequest) {
       }),
       prisma.user.count({ where }),
     ]);
+
+    // Dev fallback: if DB is empty (no users) and we're not in production, return mock users
+    if ((total === 0 || users.length === 0) && process.env.NODE_ENV !== "production") {
+      try {
+        const mockUsers = mockRepository.listUsers();
+        const mapped = mockUsers.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize).map((user) => ({
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          group: user.group,
+          role: user.role,
+          userType: (user as any).userType ?? "user",
+          coins: (user as any).coins ?? (user as any).balance ?? 0,
+          isBlocked: (user as any).isBlocked ?? false,
+          blockedAt: null,
+          blockedReason: null,
+          lastSeenAt: user.lastSeenAt,
+          updatedAt: user.updatedAt,
+          achievementsCount: 0,
+          vfxCount: 0,
+          createdAt: user.createdAt ?? new Date().toISOString(),
+        }));
+
+        return NextResponse.json({ items: mapped, page, pageSize, total: mockUsers.length, sortBy, sortOrder });
+      } catch (err) {
+        console.warn("Mock users fallback failed:", err);
+      }
+    }
 
     return NextResponse.json({
       items: users.map((user) => ({
